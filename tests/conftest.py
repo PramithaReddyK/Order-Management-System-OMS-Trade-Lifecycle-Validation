@@ -67,14 +67,17 @@ def flask_app(db_engine):
 
 
 @pytest.fixture(scope="function")
-def client(flask_app, db_session):
-    """Flask test client wired to the per-test DB session."""
-    from flask import g
+def client(flask_app, db_session, monkeypatch):
+    """Flask test client wired to the per-test DB session.
+
+    Monkeypatches SessionLocal so before_request uses the transactional
+    test session instead of opening a new connection to oms_db.
+    """
+    import app.db as db_module
+    monkeypatch.setattr(db_module, "SessionLocal", lambda: db_session)
 
     with flask_app.test_client() as c:
-        with flask_app.app_context():
-            g.db = db_session
-            yield c
+        yield c
 
 
 @pytest.fixture(scope="function")

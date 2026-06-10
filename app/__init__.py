@@ -19,7 +19,7 @@ def create_app(testing: bool = False) -> Flask:
     @app.teardown_appcontext
     def close_db(exc):
         db = g.pop("db", None)
-        if db is not None:
+        if db is not None and not app.config.get("TESTING"):
             db.close()
 
     return app
